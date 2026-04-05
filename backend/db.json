@@ -1,0 +1,35 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@gmail.com",
+      "password": "123",
+      "name": "Admin User",
+      "avatar": "https://i.pinimg.com/originals/b7/3f/d9/b73fd93e9a6ef75821112cef9443f799.jpg"
+    },
+    {
+      "id": 2,
+      "email": "member@gmail.com",
+      "password": "123",
+      "name": "Member User",
+      "avatar": "https://tse1.mm.bing.net/th/id/OIP.xKiE_jUn8tPueoLWXsyCPgHaEo?rs=1&pid=ImgDetMain&o=7&rm=3"
+    }
+  ],
+  "boards": [
+    {
+      "id": 101,
+      "title": "Dự án Tốt nghiệp",
+      "ownerId": 1,
+      "members": [1, 2]
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1001,
+      "boardId": 101,
+      "title": "Thiết kế Database",
+      "status": "In Progress",
+      "assigneeId": 1
+    }
+  ]
+}
