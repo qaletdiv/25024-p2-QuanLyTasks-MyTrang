@@ -24,6 +24,7 @@ export default function Login(){
             if(res.ok){
                 alert("Log in sucessfully!");
                 localStorage.setItem('token', data.token);
+                localStorage.setItem('userId', data.userId);
                 route.push('/boards');
             }
             else{

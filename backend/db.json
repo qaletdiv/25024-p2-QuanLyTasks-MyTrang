@@ -13,6 +13,12 @@
       "password": "123",
       "name": "Member User",
       "avatar": "https://tse1.mm.bing.net/th/id/OIP.xKiE_jUn8tPueoLWXsyCPgHaEo?rs=1&pid=ImgDetMain&o=7&rm=3"
+    },
+    {
+      "id": 3,
+      "email": "clara@gmail.com",
+      "name": "clara",
+      "avatar": null
     }
   ],
   "boards": [
@@ -20,7 +26,21 @@
       "id": 101,
       "title": "Dự án Tốt nghiệp",
       "ownerId": 1,
-      "members": [1, 2]
+      "members": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": 102,
+      "title": "Dự án Jack 5 củ",
+      "ownerId": 3,
+      "members": [
+        1,
+        2,
+        3
+      ]
     }
   ],
   "tasks": [
