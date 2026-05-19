@@ -30,7 +30,7 @@ app.post('/api/login', (req, res)=>{
 });
 
 app.post('/api/register', (req,res)=>{
-    const {email, pass, name} = req.body;
+    const {email, password, name} = req.body;
     const users = db.users;
     const currE = users.find(u => u.email == email);
     const currN = users.find(u =>u.name == name);
@@ -43,7 +43,7 @@ app.post('/api/register', (req,res)=>{
     const newU = {
         "id": users.length + 1,
         "email": email,
-        "password": pass,
+        "password": password,
         "name": name,
         "avatar": null,
     }
@@ -54,16 +54,22 @@ app.post('/api/register', (req,res)=>{
     res.status(200).json({message: "Register successfully!", token: token, userId: newU.id});
 })
 
-app.get('/api/boards/:userId', (req, res) =>{
-    const param = req.params.userId;
+app.get('/api/boards', (req, res) =>{
+    const userId = req.headers['x-user-id'];
+
+    if(!userId){
+        return res.status(401).json({message: "Invalid!"});
+    }
+
     const boards = db.boards;
     let userBoards = [];
+
     boards.forEach(e => {
-        if(e.ownerId == param || e.members.include(Number(param))){
-            userBoards.push(e.id);
+        if(e.ownerId == userId || e.members.includes(Number(userId))){
+            userBoards.push(e);
         }
     });
-    req.status(200).json({message: "Retrieve data successfully!", userBoards: userBoards});
+    res.status(200).json({message: "Retrieve data successfully!", userBoards: userBoards});
 })
 
 

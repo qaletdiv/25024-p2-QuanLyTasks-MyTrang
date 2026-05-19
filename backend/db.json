@@ -17,6 +17,7 @@
     {
       "id": 3,
       "email": "clara@gmail.com",
+      "password": "123",
       "name": "clara",
       "avatar": null
     }
