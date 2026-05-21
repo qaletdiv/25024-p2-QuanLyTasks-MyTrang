@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="grid items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <h1 className="text-center font-[family-name:var(--font-geist-sans)] text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight">
+      <h1 className="font-[family-name:var(--font-geist-sans)] text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight pb-2">
           Kanban Welcome!
       </h1>
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">

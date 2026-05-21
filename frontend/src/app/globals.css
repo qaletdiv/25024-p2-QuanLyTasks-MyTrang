@@ -3,30 +3,65 @@
 @tailwind utilities;
 
 /*DashBoardLayout*/
-#nav-opt {
-  display: flex;
-  padding: 5px 7px;
+#nav-place {
+  display: flex;             
+  flex-direction: column;    
+  gap: 5px;                 
+  align-items: center;
+}
+.nav-opt {
+  height: 35px;
+  width: 150px;
+  padding: 5px 20px;
   margin: 5px;
   border: #0a0a0a solid 1px;
   border-radius: 20px;
   cursor: pointer;
-  justify-content:space-around;
-  align-items: center;
+  text-align: center;
 }
-#nav-opt:hover{
-  background-color: grey;
+.nav-opt:hover{
+  background-color: rgb(199, 199, 199);
 }
 
+/*Private Header*/
+#private{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+.search-place{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  width: 50vw;
+}
+.search-bar{
+  margin: 10px;
+  padding: 2px 5px;
+  border:#0a0a0a solid 1px;
+  border-radius: 10px;
+}
+.user-place{
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/*Default setting*/
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 body {

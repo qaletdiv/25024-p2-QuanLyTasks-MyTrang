@@ -72,5 +72,15 @@ app.get('/api/boards', (req, res) =>{
     res.status(200).json({message: "Retrieve data successfully!", userBoards: userBoards});
 })
 
+app.get('/api/user', (req, res)=>{
+    const userId = req.headers['x-user-id'];
+    if(!userId){
+        return res.status(401).json({message: "Invalid!"});
+    }
+    const users = db.users;
+    const currU = users.find(e => e.id == Number(userId));
+    res.status(200).json({message: "Retrieve user successfully!", currU: currU});
+})
+
 
 app.listen(5000, ()=> console.log('Server is running!'));

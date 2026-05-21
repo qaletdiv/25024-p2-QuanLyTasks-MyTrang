@@ -12,14 +12,14 @@
       "email": "member@gmail.com",
       "password": "123",
       "name": "Member User",
-      "avatar": "https://tse1.mm.bing.net/th/id/OIP.xKiE_jUn8tPueoLWXsyCPgHaEo?rs=1&pid=ImgDetMain&o=7&rm=3"
+      "avatar": "https://i.pinimg.com/736x/14/7c/37/147c37f6b51d245c9d069c20d6dde0b7.jpg"
     },
     {
       "id": 3,
       "email": "clara@gmail.com",
       "password": "123",
       "name": "clara",
-      "avatar": null
+      "avatar": "https://i.pinimg.com/736x/bf/6d/54/bf6d54b98243e6bf250a89f0e2b6a708.jpg"
     }
   ],
   "boards": [
