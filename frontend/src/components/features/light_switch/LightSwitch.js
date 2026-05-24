@@ -23,8 +23,8 @@ export default function LightSwitch(){
         }
     };
     return(
-        <button onClick={toggleTheme} className="p-2 text-xl rounded-full bg-gray-200 dark:bg-gray-700 hover:scale-110 transition-transform">
-            {isDark ? "🌙" : "☀️"}
+        <button onClick={toggleTheme} className="mx-4 p-1 text-xl rounded-full bg-gray-200 dark:bg-gray-700 hover:scale-110 transition-transform">
+            {isDark ? "🌔" : "☀️"}
         </button>
     )
 }

@@ -54,23 +54,51 @@ app.post('/api/register', (req,res)=>{
     res.status(200).json({message: "Register successfully!", token: token, userId: newU.id});
 })
 
-app.get('/api/boards', (req, res) =>{
-    const userId = req.headers['x-user-id'];
-
-    if(!userId){
-        return res.status(401).json({message: "Invalid!"});
+app.get('/api/boards', (req, res) => {
+    const userId = Number(req.headers['x-user-id']);
+    
+    if (!userId) {
+        return res.status(401).json({ message: "Invalid!" });
     }
 
     const boards = db.boards;
+    const users = db.users;
+    const tasks = db.tasks || [];
+
     let userBoards = [];
 
-    boards.forEach(e => {
-        if(e.ownerId == userId || e.members.includes(Number(userId))){
-            userBoards.push(e);
+    boards.forEach(board => {
+        if (board.ownerId === userId || board.members.includes(userId)) {
+
+            const ownerInfo = users.find(u => u.id === board.ownerId);
+
+            const membersInfo = board.members.map(memId => {
+                const mem = users.find(u => u.id === memId);
+
+                return {
+                    id: mem.id,
+                    name: mem.name,
+                    avatar: mem.avatar
+                };
+            }).filter(Boolean);
+
+            const boardTasksCount = tasks.filter(t => t.boardId === board.id).length;
+
+            userBoards.push({
+                ...board,
+                ownerName: ownerInfo ? ownerInfo.name : "Unknown",
+                ownerAvatar: ownerInfo ? ownerInfo.avatar : null,
+                membersData: membersInfo,
+                tasksCount: boardTasksCount
+            });
         }
     });
-    res.status(200).json({message: "Retrieve data successfully!", userBoards: userBoards});
-})
+
+    res.status(200).json({
+        message: "Retrieve data successfully!",
+        userBoards: userBoards
+    });
+});
 
 app.get('/api/user', (req, res)=>{
     const userId = req.headers['x-user-id'];
@@ -81,6 +109,26 @@ app.get('/api/user', (req, res)=>{
     const currU = users.find(e => e.id == Number(userId));
     res.status(200).json({message: "Retrieve user successfully!", currU: currU});
 })
+
+
+app.post('/api/boards',(req, res)=>{
+    const userID = Number(req.headers['x-user-id']);
+    const {title} = req.body;
+    if(!userID){
+        return res.status(401).json({message: "Invalid!"});
+    }
+    const newB = {
+      "id": db.boards.length + 101,
+      "title": title,
+      "ownerId": userID,
+      "members": []
+    }
+    let boards = db.boards;
+    boards.push(newB);
+    db.boards = boards;
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({message: "Create successfully!", newB: newB});
+});
 
 
 app.listen(5000, ()=> console.log('Server is running!'));

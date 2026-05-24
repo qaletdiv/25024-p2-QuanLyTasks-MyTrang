@@ -29,7 +29,6 @@
       "ownerId": 1,
       "members": [
         1,
-        2,
         3
       ]
     },
@@ -42,6 +41,12 @@
         2,
         3
       ]
+    },
+    {
+      "id": 103,
+      "title": "Hola",
+      "ownerId": 3,
+      "members": []
     }
   ],
   "tasks": [

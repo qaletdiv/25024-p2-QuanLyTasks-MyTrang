@@ -20,7 +20,7 @@
   text-align: center;
 }
 .nav-opt:hover{
-  background-color: rgb(199, 199, 199);
+  background-color: rgba(216, 216, 216, 0.703);
 }
 
 /*Private Header*/
@@ -50,6 +50,12 @@
   gap: 10px;
   justify-content: center;
   align-items: center;
+}
+
+/*User's boards display*/
+#user-boards{
+  display: grid;
+  
 }
 
 
