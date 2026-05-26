@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from "react";
+import Link from "next/link";
 
 export default function Boards() {
     const [err, setErr] = useState("");
@@ -140,36 +141,37 @@ export default function Boards() {
                     ➕ Create new
                 </div>
                 {boards.map((board) => (
-                    <div 
-                        key={board.id} 
-                        className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[160px] group"
-                    >
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                                {board.title}
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                                👑 Host: <span className="font-medium text-gray-600 dark:text-gray-300">{board.ownerName}</span>
-                            </p>
-                        </div>
-                        <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3 mt-4">
-                            <div className="text-sm text-gray-500 font-medium flex items-center gap-1">
-                                📋 {board.tasksCount || 0} Tasks
+                    <Link href={`/b/${board.id}`} key={board.id}>
+                        <div 
+                            className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[160px] group"
+                        >
+                            <div>
+                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                    {board.title}
+                                </h3>
+                                <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+                                    👑 Host: <span className="font-medium text-gray-600 dark:text-gray-300">{board.ownerName}</span>
+                                </p>
                             </div>
-                            <div className="flex -space-x-2 overflow-hidden">
-                                {board.membersData && board.membersData.map((mem, i) => (
-                                    <img
-                                        key={mem.id || i}
-                                        className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-[#1a1a1a] object-cover bg-gray-200"
-                                        src={mem.avatar || `https://ui-avatars.com/api/?name=${mem.name}&background=random`}
-                                        alt={mem.name}
-                                        title={mem.name} 
-                                    />
-                                ))}
+                            <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3 mt-4">
+                                <div className="text-sm text-gray-500 font-medium flex items-center gap-1">
+                                    📋 {board.tasksCount || 0} Tasks
+                                </div>
+                                <div className="flex -space-x-2 overflow-hidden">
+                                    {board.membersData && board.membersData.map((mem, i) => (
+                                        <img
+                                            key={mem.id || i}
+                                            className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-[#1a1a1a] object-cover bg-gray-200"
+                                            src={mem.avatar || `https://ui-avatars.com/api/?name=${mem.name}&background=random`}
+                                            alt={mem.name}
+                                            title={mem.name} 
+                                        />
+                                    ))}
+                                </div>
+                                
                             </div>
-                            
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>

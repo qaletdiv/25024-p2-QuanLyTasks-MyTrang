@@ -29,7 +29,8 @@
       "ownerId": 1,
       "members": [
         1,
-        3
+        3,
+        2
       ]
     },
     {
@@ -54,8 +55,14 @@
       "id": 1001,
       "boardId": 101,
       "title": "Thiết kế Database",
-      "status": "In Progress",
+      "status": "in-progress",
       "assigneeId": 1
+    },
+    {
+      "id": 1003,
+      "boardId": 101,
+      "title": "Hola",
+      "status": "done"
     }
   ]
 }

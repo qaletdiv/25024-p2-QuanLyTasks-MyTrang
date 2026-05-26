@@ -131,4 +131,133 @@ app.post('/api/boards',(req, res)=>{
 });
 
 
+app.get('/api/boards/:id', (req, res) => {
+    const boardId = Number(req.params.id);
+    const userId = Number(req.headers['x-user-id']);
+    if (!userId) {
+        return res.status(401).json({ message: "Invalid user!" });
+    }
+    const board = db.boards.find(b => b.id === boardId);
+    if (!board) {
+        return res.status(404).json({ message: "Board not found!" });
+    }
+
+    if (board.ownerId !== userId && !board.members.includes(userId)) {
+        return res.status(403).json({ message: "Access denied!" });
+    }
+
+    const tasks = db.tasks || [];
+    const boardTasks = tasks.filter(t => t.boardId == boardId);
+
+    res.status(200).json({ message: "Retrieve board successfully!", board: board, tasks: boardTasks });
+});
+
+app.post('/api/boards/:id/tasks', (req, res) => {
+    const boardId = Number(req.params.id);
+    const userId = Number(req.headers['x-user-id']);
+    const { title } = req.body;
+
+    if (!userId) {
+        return res.status(401).json({ message: "Invalid user!" });
+    }
+    if (!title || !title.trim()) {
+        return res.status(400).json({ message: "Task title is required!" });
+    }
+    if (!db.tasks) db.tasks = [];
+    const newId = db.tasks.length > 0
+        ? Math.max(...db.tasks.map(t => t.id)) + 1
+        : 1;
+    const newTask = {
+        id: newId,
+        boardId: boardId,
+        title: title.trim(),
+        status: 'todo'
+    };
+
+    db.tasks.push(newTask);
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: "Task created successfully!", task: newTask });
+});
+
+app.put('/api/tasks/:taskId/status', (req, res) => {
+    const taskId = Number(req.params.taskId);
+    const { status } = req.body;
+
+    const task = db.tasks.find(t => t.id === taskId);
+
+    if (!task) {
+        return res.status(404).json({ message: "Task not found!" });
+    }
+
+    task.status = status;
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: "Task moved successfully!", task: task });
+});
+
+app.put('/api/tasks/:taskId', (req, res) => {
+    const taskId = Number(req.params.taskId);
+    const { title } = req.body;
+
+    if (!title || !title.trim()) {
+        return res.status(400).json({ message: "Title cannot be empty!" });
+    }
+
+    const task = db.tasks.find(t => t.id === taskId);
+    if (!task) return res.status(404).json({ message: "Task not found!" });
+
+    task.title = title.trim();
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: "Task updated!" });
+});
+
+app.delete('/api/tasks/:taskId', (req, res) => {
+    const taskId = Number(req.params.taskId);
+    
+    const initialLength = db.tasks.length;
+    db.tasks = db.tasks.filter(t => t.id !== taskId); 
+
+    if (db.tasks.length === initialLength) {
+        return res.status(404).json({ message: "Task not found!" });
+    }
+
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: "Task deleted!" });
+});
+
+app.post('/api/boards/:id/members', (req, res) => {
+    const boardId = Number(req.params.id);
+    const { email } = req.body;
+
+    if (!email || !email.trim()) {
+        return res.status(400).json({ message: "Email cannot be empty!" });
+    }
+
+    const userToAdd = db.users.find(
+        u => u.email === email.trim()
+    );
+
+    if (!userToAdd) {
+        return res.status(404).json({ message: "User with this email was not found!" });
+    }
+
+    const board = db.boards.find(
+        b => b.id === boardId
+    );
+
+    if (!board) {
+        return res.status(404).json({ message: "Board not found!" });
+    }
+
+    if (
+        board.ownerId === userToAdd.id ||
+        board.members.includes(userToAdd.id)
+    ) {
+        return res.status(400).json({ message: "This user is already in the board!" });
+    }
+
+    board.members.push(userToAdd.id);
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: `${userToAdd.name} was added to the board successfully!`});
+});
+
 app.listen(5000, ()=> console.log('Server is running!'));
