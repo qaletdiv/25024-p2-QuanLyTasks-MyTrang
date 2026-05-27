@@ -2,6 +2,13 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function SideBar(){
+
+    const handleLogOut = (e)=>{
+        e.preventDefault();
+        localStorage.removeItem('userId');
+        localStorage.removeItem('token');
+        window.location.replace('/login');
+    }
     return (
         <aside className="w-64 bg-white dark:bg-[#0a0a0a] border-r">
             <Link id="logo-place" href={'/boards'} className="flex items-center gap-2">
@@ -19,8 +26,9 @@ export default function SideBar(){
             </Link>
             <nav id="nav-place">
                 <Link className="nav-opt" href={'/boards'}>Home</Link>
-                <Link className="nav-opt" href={'#'}>Statistics</Link>
-                <Link className="nav-opt" href={'#'}>Settings</Link>
+                <Link className="nav-opt" href={'/statistics'}>Statistics</Link>
+                <Link className="nav-opt" href={'/settings'}>Settings</Link>
+                <button className="nav-opt" onClick={handleLogOut}>Log out</button>
             </nav>
         </aside>
     )

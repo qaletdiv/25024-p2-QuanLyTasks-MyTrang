@@ -12,6 +12,8 @@ export default function PrivateHeader(){
     const [searchResults, setSearchResults] = useState([]); 
     const [isSearch, setIsSearch] = useState(false);
     const [currU, setCurrU] = useState({});
+    const [unreadCount, setUnreadCount] = useState(0);
+
     useEffect(()=>{
         const userId = localStorage.getItem('userId');
         const token = localStorage.getItem('token');
@@ -68,6 +70,25 @@ export default function PrivateHeader(){
             }
         }
         fetchUser();
+
+        const fetchUnreadNotifs = async () => {
+            try {
+                const res = await fetch('http://localhost:5000/api/notifications/unread', {
+                    method: "GET",
+                    headers: {
+                        'x-user-id': userId,
+                        'authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await res.json();
+                if(res.ok) {
+                    setUnreadCount(data.unreadCount);
+                }
+            } catch(err) {
+                console.log("Không tải được thông báo");
+            }
+        }
+        fetchUnreadNotifs();
     }, []);
 
     const handleSearch = (e) => {
@@ -105,15 +126,27 @@ export default function PrivateHeader(){
                     🔍
                 </button>
             </form>
+            <Link
+                href="/notifications"
+                className="relative p-1 text-gray-500 hover:text-blue-500 transition-colors flex items-center justify-center"
+            >
+                <span className="text-xl">🔔</span>
+
+                {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 rounded-full border-2 border-white dark:border-[#0a0a0a] animate-bounce">
+                        {unreadCount}
+                    </span>
+                )}
+            </Link>
             <LightSwitch/>
             <div className="user-place flex items-center gap-4">
                 {currU.name && (
-                    <Link href={'#'} className="font-[family-name:var(--font-geist-sans)] text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
+                    <Link href={'/settings'} className="font-[family-name:var(--font-geist-sans)] text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
                         {currU.name}
                     </Link>
                 )}
                 {currU.avatar && (
-                    <Link href={'#'}>
+                    <Link href={'/settings'}>
                         <Image className="object-cover rounded-full" height={40} width={40} src={currU.avatar} alt="user-avatar" priority />
                     </Link>
                 )}
