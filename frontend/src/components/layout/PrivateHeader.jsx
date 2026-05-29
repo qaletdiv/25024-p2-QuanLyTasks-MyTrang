@@ -113,19 +113,9 @@ export default function PrivateHeader(){
 
     return (
         <header id="private" className="h-16 bg-white dark:bg-[#0a0a0a] border-b dark:border-gray-800 transition-colors duration-300">
-            <form className="search-place" onSubmit={handleSearch}>
-                <input 
-                    className="search-bar bg-gray-50 dark:bg-[#1a1a1a] text-black dark:text-white border-gray-300 dark:border-gray-600 transition-colors"
-                    type="text" 
-                    placeholder="What are you finding?" 
-                    value={search} 
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-
-                <button type="submit" id="search-icon" className="dark:text-white">
-                    🔍
-                </button>
-            </form>
+            <div className="search-place">
+                <h1><strong>Halo, wellcome to {currU.name}!</strong></h1>
+            </div>
             <Link
                 href="/notifications"
                 className="relative p-1 text-gray-500 hover:text-blue-500 transition-colors flex items-center justify-center"

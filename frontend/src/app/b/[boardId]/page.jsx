@@ -55,7 +55,16 @@ export default function BoardDetail() {
         fetchBoardDetail();
     }, [id]);
 
-    if (err) return <div className="p-6 text-red-500 font-bold">{err}</div>;
+    if (err) return <div className="p-6 text-red-500 font-bold">
+        <Link 
+            href={'/boards'}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 font-medium transition-all hover:border-blue-500 hover:text-blue-600 hover:shadow-lg hover:shadow-blue-500/10 active:scale-95"
+        >
+            <span className="text-sm">←</span>
+            <span>Back to Boards</span>
+        </Link>
+        <div className="m-5 ">{err}</div>
+        </div>;
     if (!board) return <div className="p-6 text-gray-500">No board yet...</div>;
 
     const displayedTasks = filterMyTasks 
@@ -262,10 +271,15 @@ export default function BoardDetail() {
     };
 
    return (
-        <div className="p-6 h-full flex flex-col">
+        <div className="p-6 h-screen flex flex-col bg-cover bg-center bg-fixed transition-all duration-500"
+        style={{ 
+            backgroundImage: board.bg ? `url(${board.bg})` : 'none',
+            backgroundColor: board.bg ? 'transparent' : '#f3f4f6'
+        }}>
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] -z-10" />
             <div className="mb-6 flex justify-between items-end border-b border-gray-200 dark:border-gray-800 pb-4">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white tracking-tight">
+                    <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white tracking-tight bg-white dark:bg-[#2d2d2d] rounded-lg py-2 px-5">
                         {board.title}
                     </h1>
                 </div>
@@ -694,7 +708,7 @@ export default function BoardDetail() {
                             ))}
                         </div>
                     </div>
-                    <aside className="w-64 bg-white dark:bg-[#1a1a1a] border-l border-gray-200 dark:border-gray-800 p-4">
+                    <aside className="w-64 bg-white dark:bg-[#1a1a1a] border-l border-gray-200 dark:border-gray-800 p-4 rounded-lg">
                         <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4">
                             Members ({board.membersData?.length || 0})
                         </h3>

@@ -115,24 +115,26 @@ app.get('/api/users', (req, res)=>{
     res.status(200).json({message: "Retrieve user successfully!", users: users});
 })
 
-app.post('/api/boards',(req, res)=>{
+app.post('/api/boards', (req, res) => {
     const userID = Number(req.headers['x-user-id']);
-    const {title, deadline} = req.body;
-    if(!userID){
-        return res.status(401).json({message: "Invalid!"});
-    }
+    const { title, deadline, bg, inviteEmail } = req.body;
+
     const newB = {
-      "id": db.boards.length + 101,
-      "title": title,
-      "deadline": deadline,
-      "ownerId": userID,
-      "members": []
+        "id": db.boards.length + 101,
+        "title": title,
+        "deadline": deadline,
+        "bg": bg,
+        "ownerId": userID,
+        "members": []
+    };
+    if (inviteEmail) {
+        const userToInvite = db.users.find(u => u.email === inviteEmail);
+        if (userToInvite) newB.members.push(userToInvite.id);
     }
-    let boards = db.boards;
-    boards.push(newB);
-    db.boards = boards;
+
+    db.boards.push(newB);
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
-    res.status(200).json({message: "Create successfully!", newB: newB});
+    res.status(200).json({ message: "Create successfully!", newB: newB });
 });
 
 app.get('/api/boards/:id', (req, res) => {
@@ -550,6 +552,18 @@ app.put('/api/tasks/:taskId/deadline', (req, res) => {
 
 app.get('/api/tasks', (req, res) => {
     res.status(200).json({ tasks: db.tasks });
+});
+
+app.put('/api/notifications/:id/read', (req, res) => {
+    const notifId = Number(req.params.id);
+    const notif = db.notifications.find(n => n.id === notifId);
+    
+    if (!notif) return res.status(404).json({ message: "Notification not found!" });
+
+    notif.isRead = true;
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    
+    res.status(200).json({ message: "Marked as read!" });
 });
 
 app.listen(5000, ()=> console.log('Server is running!'));

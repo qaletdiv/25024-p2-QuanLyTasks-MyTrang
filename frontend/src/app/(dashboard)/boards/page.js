@@ -2,12 +2,25 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+const bgOptions = [
+    "https://i.pinimg.com/736x/2d/31/44/2d31441b2848a342a707b22b3b5f44d1.jpg",
+    "https://i.pinimg.com/1200x/c7/c5/59/c7c55995d7f0c37f4bd9755fea997593.jpg",
+    "https://i.pinimg.com/736x/2a/fb/2f/2afb2f7d27e33a9ef32d29bfd2292217.jpg",
+    "https://i.pinimg.com/1200x/90/7f/b0/907fb02e27016f459cafa3047a368358.jpg",
+    "https://i.pinimg.com/736x/75/78/cc/7578cc98dcfbad679838f0095e329e77.jpg",
+    "https://i.pinimg.com/736x/26/69/be/2669beca7c00ee17a01b960eb85e9e2e.jpg",
+];
+
 export default function Boards() {
     const [err, setErr] = useState("");
     const [boards, setBoards] = useState([]);
     const [isPopUp, setIsPopUp] = useState(false);
     const [boardN, setBoardN] = useState("");
     const [deadline, setDeadline] = useState("");
+
+    //make COLOR 🫠
+    const [bg, setBg] = useState(bgOptions[0]);
+    const [inviteEmail, setInviteEmail] = useState("");
 
     useEffect(() => {
         const fetchBoards = async () => {
@@ -47,36 +60,23 @@ export default function Boards() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErr("");       
         const boardNameTrimmed = boardN.trim();
-        if (!boardNameTrimmed) {
-            setErr("Board name cannot be empty!");
-            return;
-        }
+        if (!boardNameTrimmed) return setErr("Board name required!");
+
         const userId = localStorage.getItem('userId');
-        const token = localStorage.getItem('token');
         try {
             const res = await fetch('http://localhost:5000/api/boards', {
                 method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'x-user-id': userId,
-                    'authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ title: boardNameTrimmed, deadline })
+                headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+                body: JSON.stringify({ title: boardNameTrimmed, deadline, bg, inviteEmail })
             });
             const data = await res.json();
             if (res.ok) {
                 setBoards([...boards, data.newB]);
-                setBoardN("");
                 setIsPopUp(false);
-                console.log(data.message);
-            } else {
-                setErr(data.message);
+                setBoardN("");
             }
-        } catch (err) {
-            setErr("Error connecting to server!");
-        } 
+        } catch (err) { setErr("Error connecting to server!"); }
     }
 
     const handleDeleteBoard = async (e,boardId) => {
@@ -87,7 +87,7 @@ export default function Boards() {
         await fetch(`http://localhost:5000/api/boards/${boardId}`, {
             method: 'DELETE'
         });
-        setBoard(prev => prev.filter(b => b.id !== boardId));
+        setBoards(prev => prev.filter(b => b.id !== boardId));
     };
 
     const handleEditBoard = async (e,boardId, currentTitle) => {
@@ -103,13 +103,13 @@ export default function Boards() {
         });
         
         if (res.ok) {
-            setBoard(prev => prev.map(b => b.id === boardId ? { ...b, title: newTitle } : b));
+            setBoards(prev => prev.map(b => b.id === boardId ? { ...b, title: newTitle } : b));
         }
     };
 
     return (
         <div className="p-6">
-            {err && <p className="text-red-500 font-bold mb-4">{err}</p>}
+            {err && <p className="text-red-500 font-bold mb-4">{err} <Link href={'/boards'}>Go back</Link></p>}
             {boards.length === 0 && <p className="text-gray-500 italic">You have no boards yet!</p>}
 
             {isPopUp && (
@@ -126,45 +126,33 @@ export default function Boards() {
                             Create new board
                         </h2>
 
-                        <form onSubmit={e => handleSubmit(e)} className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-2">
-                                <label className="text-sm font-semibold text-gray-600 dark:text-gray-300">
-                                    Board's name:
-                                </label>
-                                <input 
-                                    className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] text-black dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                    type="text" 
-                                    value={boardN} 
-                                    onChange={e => setBoardN(e.target.value)}
-                                    placeholder="VD: Kế hoạch thực tập, Đồ án..."
-                                    autoFocus
-                                />
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-sm font-semibold text-gray-600">Deadline:</label>
-                                    <input 
-                                        type="date" 
-                                        value={deadline} 
-                                        onChange={(e) => setDeadline(e.target.value)}
-                                        className="p-2 border rounded"
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                            <label><strong>Name Board</strong></label>
+                            <input 
+                                className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] border dark:border-gray-600"
+                                type="text" value={boardN} onChange={e => setBoardN(e.target.value)} placeholder="Tên Board..." 
+                            />
+                            <label><strong>Deadline</strong></label>
+                            <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="p-2 border rounded" />
+                            <label><strong>Invite members</strong></label>
+                            <input 
+                                type="email" 
+                                placeholder="Invite email..." 
+                                value={inviteEmail}
+                                onChange={e => setInviteEmail(e.target.value)}
+                                className="w-full px-4 py-3 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-[#1a1a1a]"
+                            />
+                            <div className="grid grid-cols-3 gap-2">
+                                {bgOptions.map(option => (
+                                    <img 
+                                        key={option} src={option} alt="bg"
+                                        onClick={() => setBg(option)}
+                                        className={`cursor-pointer rounded h-16 object-cover border-2 ${bg === option ? 'border-blue-500' : 'border-transparent'}`}
                                     />
-                                </div>
+                                ))}
                             </div>
-                            <div className="flex justify-end gap-3 mt-4">
-                                <button 
-                                    type="button" 
-                                    onClick={toggleCross}
-                                    className="px-5 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    type="submit"
-                                    className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-md"
-                                >
-                                    Create
-                                </button>
 
-                            </div>
+                            <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Create</button>
                         </form>
                         
                     </div>

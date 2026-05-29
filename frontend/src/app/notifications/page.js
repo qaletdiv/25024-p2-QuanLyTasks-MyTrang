@@ -38,6 +38,25 @@ export default function NotificationsPage() {
         fetchNotifications();
     }, []);
 
+    const markAsRead = async (notifId) => {
+        try {
+            await fetch(`http://localhost:5000/api/notifications/${notifId}/read`,
+                {
+                    method: "PUT"
+                }
+            );
+            setNotifs(prev =>
+                prev.map(n =>
+                    n.id === notifId
+                        ? { ...n, isRead: true }
+                        : n
+                )
+            );
+        } catch (error) {
+            console.log("Error marking notification");
+        }
+    };
+
     return (
         <div className="max-w-3xl mx-auto p-6 mt-8">
             <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white mb-6 flex items-center gap-2">
@@ -59,9 +78,10 @@ export default function NotificationsPage() {
                 <div className="space-y-4">
                     {notifs.map(notif => (
                         <Link
-                            href={`/boards/${notif.boardId}`}
+                            href={`/b/${notif.boardId}`}
                             key={notif.id}
                             className="block"
+                            onClick={() => markAsRead(notif.id)}
                         >
                             <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-800 p-5 rounded-xl shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer flex justify-between items-center group">
 
