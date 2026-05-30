@@ -3,6 +3,7 @@ import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import TaskComment from "@/components/features/comment/TaskComment";
 import Link from "next/link";
+import { bgOptions } from "@/app/(dashboard)/boards/page";
 
 export default function BoardDetail() {
     const param = useParams();
@@ -20,7 +21,6 @@ export default function BoardDetail() {
     const [assignDropdownId, setAssignDropdownId] = useState(null);
     const [filterMyTasks, setFilterMyTasks] = useState(false); 
     const [currentUserId, setCurrentUserId] = useState(null); 
-    
 
     useEffect(() => {
         if (!id) return;
@@ -54,6 +54,10 @@ export default function BoardDetail() {
 
         fetchBoardDetail();
     }, [id]);
+
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [newBoardTitle, setNewBoardTitle] = useState("");
+    const [selectedBg, setSelectedBg] = useState("");
 
     if (err) return <div className="p-6 text-red-500 font-bold">
         <Link 
@@ -270,60 +274,153 @@ export default function BoardDetail() {
         return new Date(deadline) < today;
     };
 
+    const handleUpdateBoard = async () => {
+        const updateData = {};
+        if (newBoardTitle.trim() !== "") updateData.title = newBoardTitle;
+        if (selectedBg) updateData.bg = selectedBg;
+
+        const res = await fetch(`http://localhost:5000/api/boards/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData)
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            setBoard(data.board); 
+            setIsSettingsOpen(false);
+            alert("Cập nhật thành công!");
+        }
+    };
+
+    const handleRemoveMember = async (memberId) => {
+        if (!confirm(memberId === currentUserId ? "Bạn có chắc chắn muốn rời Board này?" : "Bạn có chắc chắn muốn xóa thành viên này?")) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/boards/${id}/members/${memberId}`, {
+                method: "DELETE",
+                headers: { 'x-user-id': currentUserId }
+            });
+
+            if (res.ok) {
+                setBoard(prev => ({
+                    ...prev,
+                    membersData: prev.membersData.filter(m => m.id !== memberId)
+                }));
+                
+                if (memberId === currentUserId) {
+                    window.location.href = '/boards';
+                }
+            } else {
+                alert("Cannot do this action!");
+            }
+        } catch (error) {
+            alert("Error connection to server!");
+        }
+    };
+
    return (
         <div className="p-6 h-screen flex flex-col bg-cover bg-center bg-fixed transition-all duration-500"
         style={{ 
             backgroundImage: board.bg ? `url(${board.bg})` : 'none',
             backgroundColor: board.bg ? 'transparent' : '#f3f4f6'
         }}>
+            {isSettingsOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-[#1a1a1a] p-6 rounded-2xl w-96 border dark:border-gray-700">
+                        <h2 className="text-lg font-bold mb-4 dark:text-white">Board Settings</h2>
+                        
+                        <label className="block text-sm mb-2">Board Name</label>
+                        <input 
+                            value={newBoardTitle} 
+                            onChange={e => setNewBoardTitle(e.target.value)}
+                            className="w-full p-2 mb-4 bg-gray-50 dark:bg-[#2d2d2d] rounded border dark:border-gray-600"
+                        />
+
+                        <label className="block text-sm mb-2">Change background</label>
+                        <div className="grid grid-cols-3 gap-2 mb-6">
+                            {bgOptions.map(url => (
+                                <img key={url} src={url} 
+                                    onClick={() => setSelectedBg(url)}
+                                    className={`h-12 w-full object-cover rounded cursor-pointer ${selectedBg === url ? 'ring-2 ring-blue-500' : ''}`}
+                                />
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button onClick={handleUpdateBoard} className="flex-1 bg-blue-600 text-white py-2 rounded">Save</button>
+                            <button onClick={() => setIsSettingsOpen(false)} className="flex-1 bg-gray-200 py-2 rounded">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] -z-10" />
-            <div className="mb-6 flex justify-between items-end border-b border-gray-200 dark:border-gray-800 pb-4">
-                <div>
-                    <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white tracking-tight bg-white dark:bg-[#2d2d2d] rounded-lg py-2 px-5">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
+                <div className="flex items-center gap-3">
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white tracking-tight bg-white dark:bg-[#2d2d2d] rounded-lg py-2 px-5">
                         {board.title}
                     </h1>
+                    <button 
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] p-1 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"
+                        title="Board Settings"
+                    >
+                        ⚙️ Settings
+                    </button>
                 </div>
-
-                <div className="relative">
-                    {isInviting ? (
-                        <form onSubmit={handleInviteMember} className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] p-1 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
-                            <input 
-                                autoFocus
-                                type="email"
-                                placeholder="Input email..."
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                                className="px-3 py-1.5 bg-transparent focus:outline-none text-sm dark:text-white w-48"
-                            />
-                            <button type="submit" className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded hover:bg-blue-700 transition-colors">
-                                Invite
-                            </button>
-                            <button 
-                                type="button" 
-                                onClick={() => { setIsInviting(false); setInviteEmail(""); }}
-                                className="text-gray-500 hover:text-red-500 px-2"
-                            >
-                                ✖
-                            </button>
-                        </form>
-                    ) : (
-                        <button 
-                            onClick={() => setIsInviting(true)}
-                            className="flex items-center gap-2 bg-gray-100 dark:bg-[#2d2d2d] hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                
+                <div className="flex items-center gap-2">
+                    <div className="relative">
+                        {isInviting ? (
+                            <form onSubmit={handleInviteMember} className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] p-1 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm">
+                                <input 
+                                    autoFocus
+                                    type="email"
+                                    placeholder="Input email..."
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    className="px-3 py-1.5 bg-transparent focus:outline-none text-sm dark:text-white w-48"
+                                />
+                                <button type="submit" className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded hover:bg-blue-700 transition-colors">
+                                    Invite
+                                </button>
+                                <button 
+                                    type="button" 
+                                    onClick={() => { setIsInviting(false); setInviteEmail(""); }}
+                                    className="text-gray-500 hover:text-red-500 px-2"
+                                >
+                                    ✖
+                                </button>
+                            </form>
+                        ) : (
+                            board.ownerId === currentUserId && (
+                                <button 
+                                    onClick={() => setIsInviting(true)}
+                                    className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-[#2d2d2d] hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-all"
+                                >
+                                    <span>👤</span> Add member
+                                </button>
+                            )
+                        )}
+                        <button
+                            onClick={() => setFilterMyTasks(!filterMyTasks)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ml-3 ${
+                                filterMyTasks 
+                                ? 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' 
+                                : 'bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200 dark:bg-[#2d2d2d] dark:text-gray-200 dark:hover:bg-gray-700'
+                            }`}
                         >
-                            <span>👤</span> Add member
+                            <span>🎯</span> {filterMyTasks ? "Đang lọc Task của tôi" : "Task của tôi"}
+                        </button>
+                        {board?.ownerId !== currentUserId && (
+                    <button 
+                        onClick={() => handleRemoveMember(currentUserId)}
+                        className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-all"
+                    >
+                            <span>🚪</span> Leave
                         </button>
                     )}
-                    <button
-                        onClick={() => setFilterMyTasks(!filterMyTasks)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors border ml-3 ${
-                            filterMyTasks 
-                            ? 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' 
-                            : 'bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200 dark:bg-[#2d2d2d] dark:text-gray-200 dark:hover:bg-gray-700'
-                        }`}
-                    >
-                        <span>🎯</span> {filterMyTasks ? "Đang lọc Task của tôi" : "Task của tôi"}
-                    </button>
+                    </div>
                 </div>
                 
             </div>
@@ -708,23 +805,32 @@ export default function BoardDetail() {
                             ))}
                         </div>
                     </div>
-                    <aside className="w-64 bg-white dark:bg-[#1a1a1a] border-l border-gray-200 dark:border-gray-800 p-4 rounded-lg">
-                        <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-4">
-                            Members ({board.membersData?.length || 0})
-                        </h3>
+
+                    <aside className="w-64 bg-white dark:bg-[#1a1a1a] border-l border-gray-200 dark:border-gray-800 p-4">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-bold text-gray-700 dark:text-gray-300">
+                                Members ({board.membersData?.length || 0})
+                            </h3>
+                        </div>
+
                         <div className="space-y-3">
                             {board.membersData?.map(member => (
-                                <div key={member.id} className="flex items-center gap-3">
+                                <div key={member.id} className="flex items-center gap-3 group">
                                     <img 
                                         src={member.avatar || `https://ui-avatars.com/api/?name=${member.name}`}
-                                        className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+                                        className="w-9 h-9 rounded-full object-cover"
                                         alt={member.name}
                                     />
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
-                                        {member.name}
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate flex-1">
+                                        {member.name} {member.id === board.ownerId && "👑"}
                                     </span>
-                                    {member.id === board.ownerId && (
-                                        <span className="text-xs text-yellow-500 ml-auto" title="Chủ dự án">👑</span>
+                                    {(board.ownerId === currentUserId || member.id === currentUserId) && member.id !== board.ownerId && (
+                                        <button 
+                                            onClick={() => handleRemoveMember(member.id)}
+                                            className="text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            {member.id === currentUserId ? "" : "Delete"}
+                                        </button>
                                     )}
                                 </div>
                             ))}

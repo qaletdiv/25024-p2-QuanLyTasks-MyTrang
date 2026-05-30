@@ -507,8 +507,14 @@ app.put('/api/tasks/:taskId/checklist/:itemId', (req, res) => {
 
 app.delete('/api/boards/:boardId', (req, res) => {
     const boardId = Number(req.params.boardId);
+    const userId = Number(req.headers['x-user-id']);
+
+    const currB = db.boards.find(b => b.id === boardId);
     db.boards = db.boards.filter(b => b.id !== boardId);
-    
+
+    if(userId !== currB.ownerId)
+        return res.status(403).json({message: "Invalid access!"});
+
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Board deleted!" });
 });
@@ -528,11 +534,12 @@ app.put('/api/user', (req, res) => {
 });
 
 app.put('/api/boards/:boardId', (req, res) => {
-    const { title, deadline } = req.body;
+    const { title, deadline, bg } = req.body;
     const board = db.boards.find(b => b.id === Number(req.params.boardId));
     if (board) {
-        if (title) board.title = title;
+        if (title && title.trim() !== "") board.title = title;
         if (deadline) board.deadline = deadline;
+        if (bg) board.bg = bg;
         fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
         res.status(200).json({ board });
     }
@@ -564,6 +571,26 @@ app.put('/api/notifications/:id/read', (req, res) => {
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     
     res.status(200).json({ message: "Marked as read!" });
+});
+
+app.delete('/api/boards/:boardId/members/:memberId', (req, res) => {
+    const boardId = Number(req.params.boardId);
+    const memberId = Number(req.params.memberId);
+    const userId = Number(req.headers['x-user-id']); 
+
+    const board = db.boards.find(b => b.id === boardId);
+    if (!board) return res.status(404).json({ message: "Board not found!" });
+    const isOwner = board.ownerId === userId;
+    const isSelf = memberId === userId;
+
+    if (!isOwner && !isSelf) {
+        return res.status(403).json({ message: "Không có quyền thực hiện!" });
+    }
+
+    board.members = board.members.filter(id => id !== memberId);
+    board.membersData = board.membersData.filter(m => m.id !== memberId);
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: "Đã cập nhật thành viên!" });
 });
 
 app.listen(5000, ()=> console.log('Server is running!'));

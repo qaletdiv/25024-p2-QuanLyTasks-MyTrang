@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-const bgOptions = [
+export const bgOptions = [
     "https://i.pinimg.com/736x/2d/31/44/2d31441b2848a342a707b22b3b5f44d1.jpg",
     "https://i.pinimg.com/1200x/c7/c5/59/c7c55995d7f0c37f4bd9755fea997593.jpg",
     "https://i.pinimg.com/736x/2a/fb/2f/2afb2f7d27e33a9ef32d29bfd2292217.jpg",
@@ -17,12 +17,14 @@ export default function Boards() {
     const [isPopUp, setIsPopUp] = useState(false);
     const [boardN, setBoardN] = useState("");
     const [deadline, setDeadline] = useState("");
+    const [currentUserId, setCurrentUserId] = useState(null);
 
     //make COLOR 🫠
     const [bg, setBg] = useState(bgOptions[0]);
     const [inviteEmail, setInviteEmail] = useState("");
 
     useEffect(() => {
+        setCurrentUserId(Number(localStorage.getItem('userId')));
         const fetchBoards = async () => {
             try {
                 const userId = localStorage.getItem('userId');
@@ -83,28 +85,15 @@ export default function Boards() {
         e.stopPropagation(); 
         e.preventDefault();
         if (!confirm("Bạn có chắc chắn muốn xóa board này?")) return;
-        
+        const userId = localStorage.getItem('userId');
         await fetch(`http://localhost:5000/api/boards/${boardId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers:{
+                'Content-Type': 'application/json',
+                'x-user-id': userId
+            }
         });
         setBoards(prev => prev.filter(b => b.id !== boardId));
-    };
-
-    const handleEditBoard = async (e,boardId, currentTitle) => {
-        e.stopPropagation(); 
-        e.preventDefault();
-        const newTitle = prompt("Nhập tên board mới:", currentTitle);
-        if (!newTitle || newTitle === currentTitle) return;
-        
-        const res = await fetch(`http://localhost:5000/api/boards/${boardId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: newTitle })
-        });
-        
-        if (res.ok) {
-            setBoards(prev => prev.map(b => b.id === boardId ? { ...b, title: newTitle } : b));
-        }
     };
 
     return (
@@ -170,23 +159,21 @@ export default function Boards() {
                             className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[160px] group"
                         >
                             <div>
-                                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                                    {board.title}
-                                    <div className="flex gap-2 mt-4">
+                                <div className="flex items-center justify-between gap-4">
+                                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                        {board.title}
+                                    </h3>
+                                    {board.ownerId === currentUserId && (
                                         <button 
-                                            onClick={(e) => handleEditBoard(e,board.id, board.title)}
-                                            className="text-blue-500 underline"
-                                        >
-                                            ✒️
-                                        </button>
-                                        <button 
-                                            onClick={(e) => handleDeleteBoard(e,board.id)}
-                                            className="text-red-500 underline"
+                                            onClick={(e) => handleDeleteBoard(e, board.id)}
+                                            className="text-red-500 hover:text-red-700 transition-colors"
+                                            title="Xóa board"
                                         >
                                             ❌
                                         </button>
-                                    </div>
-                                </h3>
+                                    )}
+                                </div>
+                                
                                 <div className="mt-2 text-xs font-medium text-gray-500">
                                     {board.deadline ? (
                                         <span className={new Date(board.deadline) < new Date() ? "text-red-500" : "text-green-600"}>
