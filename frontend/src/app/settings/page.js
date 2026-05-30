@@ -50,6 +50,7 @@ export default function Settings() {
 
             if (res.ok) {
                 alert("Cập nhật thông tin thành công!");
+                setUser(prev => ({ ...prev, avatar: user.avatar }));
                 setNewPassword(""); 
             } else {
                 alert("Lỗi: " + data.message);

@@ -68,7 +68,8 @@ export default function TaskDetail() {
                                 isDone: !item.isDone
                             }
                             : item
-                    )
+                    ),
+                    history: data.task.history
                 }));
             } else {
                 console.error(
@@ -108,7 +109,8 @@ export default function TaskDetail() {
                     checklist: [
                         ...(prev.checklist || []),
                         data.item
-                    ]
+                    ],
+                    history: data.task.history
                 }));
             }
         } catch (error) {
@@ -127,7 +129,8 @@ export default function TaskDetail() {
                 body: JSON.stringify({ deadline: date })
             });
             if (res.ok) {
-                setTask(prev => ({ ...prev, deadline: date })); 
+                const data = await res.json();
+                setTask(data.task)
                 setIsEditing(false); 
             }
         } catch (err) {
@@ -235,6 +238,24 @@ export default function TaskDetail() {
                     ) : (
                         <p className="text-sm text-gray-400 mt-2 italic">Not assigned yet!</p>
                     )}
+                </div>
+
+                <div className="p-4 bg-white dark:bg-[#1a1a1a] rounded-lg border dark:border-gray-700">
+                    <h3 className="font-bold text-sm mb-3 dark:text-white">Activity Log</h3>
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                        {task?.history?.length > 0 ? (
+                            task.history.map(log => (
+                                <div key={log.id} className="text-xs border-l-2 border-blue-500 pl-2">
+                                    <p className="dark:text-gray-300">
+                                        <span className="font-semibold text-blue-500">{log.userName}</span> {log.action}
+                                    </p>
+                                    <p className="text-[10px] text-gray-400">{log.createdAt}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-xs text-gray-400 italic">No activity yet.</p>
+                        )}
+                    </div>
                 </div>
 
             </div>

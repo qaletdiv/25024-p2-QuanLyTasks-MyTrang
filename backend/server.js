@@ -202,6 +202,10 @@ app.post('/api/boards/:id/tasks', (req, res) => {
 
 app.put('/api/tasks/:taskId/deadline', (req, res) => {
     const task = db.tasks.find(t => t.id === Number(req.params.taskId));
+    const { status } = req.body;
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    task.status = status;
+    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
     task.deadline = req.body.deadline;
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Deadline updated!" });
@@ -210,9 +214,10 @@ app.put('/api/tasks/:taskId/deadline', (req, res) => {
 app.put('/api/tasks/:taskId/status', (req, res) => {
     const taskId = Number(req.params.taskId);
     const { status } = req.body;
-
     const task = db.tasks.find(t => t.id === taskId);
-
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    task.status = status;
+    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
     if (!task) {
         return res.status(404).json({ message: "Task not found!" });
     }
@@ -368,6 +373,10 @@ app.put('/api/tasks/:taskId/assign', (req, res) => {
     const task = db.tasks.find(
         t => t.id === taskId
     );
+    const { status } = req.body;
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    task.status = status;
+    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
 
     if (!task) {
         return res.status(404).json({
@@ -477,7 +486,10 @@ app.put('/api/tasks/:taskId/description', (req, res) => {
 
     const task = db.tasks.find(t => t.id === taskId);
     if (!task) return res.status(404).json({ message: "Task not found!" });
-
+    const { status } = req.body;
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    task.status = status;
+    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
     task.description = description;
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Description updated!", task });
@@ -592,5 +604,15 @@ app.delete('/api/boards/:boardId/members/:memberId', (req, res) => {
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Đã cập nhật thành viên!" });
 });
+
+const addHistory = (task, action, userName) => {
+    if (!task.history) task.history = [];
+    task.history.unshift({
+        id: Date.now(),
+        action: action,
+        userName: userName,
+        createdAt: new Date().toLocaleString()
+    });
+};
 
 app.listen(5000, ()=> console.log('Server is running!'));
