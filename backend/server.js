@@ -125,7 +125,12 @@ app.post('/api/boards', (req, res) => {
         "deadline": deadline,
         "bg": bg,
         "ownerId": userID,
-        "members": []
+        "members": [],
+        "columns": [
+            { id: "todo", title: "To Do" },
+            { id: "in-progress", title: "In Progress" },
+            { id: "done", title: "Done" }
+        ]
     };
     if (inviteEmail) {
         const userToInvite = db.users.find(u => u.email === inviteEmail);
@@ -146,6 +151,14 @@ app.get('/api/boards/:id', (req, res) => {
     const board = db.boards.find(b => b.id === boardId);
     if (!board) {
         return res.status(404).json({ message: "Board not found!" });
+    }
+
+    if (!board.columns) {
+        board.columns = [
+            { id: "todo", title: "To Do" },
+            { id: "in-progress", title: "In Progress" },
+            { id: "done", title: "Done" }
+        ];
     }
 
     if (board.ownerId !== userId && !board.members.includes(userId)) {
@@ -172,6 +185,19 @@ app.get('/api/boards/:id', (req, res) => {
     res.status(200).json({ message: "Retrieve board successfully!", board: board, tasks: boardTasks });
 });
 
+app.put('/api/boards/:id/columns', (req, res) => {
+    const boardId = Number(req.params.id);
+    const { columns } = req.body;
+
+    const board = db.boards.find(b => b.id === boardId);
+    if (!board) return res.status(404).json({ message: "Board not found!" });
+
+    board.columns = columns;
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    
+    res.status(200).json({ message: "Columns updated!", columns: board.columns });
+});
+
 app.post('/api/boards/:id/tasks', (req, res) => {
     const boardId = Number(req.params.id);
     const userId = Number(req.headers['x-user-id']);
@@ -192,11 +218,15 @@ app.post('/api/boards/:id/tasks', (req, res) => {
         boardId: boardId,
         title: title.trim(),
         deadline: req.body.deadline || null,
-        status: 'todo',
+        status: req.body.status || 'todo',
         assigneeId: null
     };
     addHistory(newTask, "Task created", "System");
     db.tasks.push(newTask);
+
+    const boardInfo = db.boards.find(b => b.id === boardId);
+    const userInfo = db.users.find(u => u.id === userId);
+    createNotification(boardId, userId, `📝 ${userInfo ? userInfo.name : "Ai đó"} vừa thêm task mới: "${newTask.title}" vào board ${boardInfo?.title}`);
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Task created successfully!", task: newTask });
 });
@@ -221,7 +251,7 @@ app.put('/api/tasks/:taskId/status', (req, res) => {
     task.status = status;
     const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
     addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
-    
+    createNotification(task.boardId, user.id, `🔄 ${user.name} đã chuyển task "${task.title}" sang "${status}"`);
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Task moved successfully!", task: task });
 });
@@ -378,6 +408,11 @@ app.put('/api/tasks/:taskId/assign', (req, res) => {
     const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
     addHistory(task, `Assigned to ${assigneeId ? "a member" : "no one"}`, user ? user.name : "System");
     const assignee = db.users.find(u => Number(u.id) === Number(assigneeId));
+    if (assignee) {
+        createNotification(task.boardId, user.id, `👤 ${user.name} đã gán task "${task.title}" cho ${assignee.name}`);
+    } else {
+        createNotification(task.boardId, user.id, `👤 ${user.name} đã gỡ người làm khỏi task "${task.title}"`);
+    }
     const assigneeData = assignee ? {
         assigneeName: assignee.name,
         assigneeAvatar: assignee.avatar
@@ -597,6 +632,26 @@ const addHistory = (task, action, userName) => {
         action: action,
         userName: userName,
         createdAt: new Date().toLocaleString()
+    });
+};
+
+const createNotification = (boardId, senderId, message) => {
+    const board = db.boards.find(b => b.id === boardId);
+    if (!board) return;
+    const allMembers = [board.ownerId, ...board.members];
+    const receivers = allMembers.filter(id => id !== senderId);
+
+    if (!db.notifications) db.notifications = [];
+
+    receivers.forEach(userId => {
+        db.notifications.push({
+            id: Date.now() + Math.floor(Math.random() * 10000), 
+            userId: userId,
+            boardId: boardId,
+            message: message,
+            isRead: false,
+            createdAt: new Date().toLocaleString()
+        });
     });
 };
 
