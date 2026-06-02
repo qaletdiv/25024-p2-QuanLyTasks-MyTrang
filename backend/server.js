@@ -163,6 +163,7 @@ app.get('/api/boards/:id', (req, res) => {
         const assignee = db.users.find(u => u.id == t.assigneeId);
         return {
             ...t,
+            assigneeId: t.assigneeId ? Number(t.assigneeId) : null,
             assigneeName: assignee ? assignee.name : "Unassigned",
             assigneeAvatar: assignee ? assignee.avatar : null
         };
@@ -194,7 +195,7 @@ app.post('/api/boards/:id/tasks', (req, res) => {
         status: 'todo',
         assigneeId: null
     };
-
+    addHistory(newTask, "Task created", "System");
     db.tasks.push(newTask);
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Task created successfully!", task: newTask });
@@ -215,14 +216,12 @@ app.put('/api/tasks/:taskId/status', (req, res) => {
     const taskId = Number(req.params.taskId);
     const { status } = req.body;
     const task = db.tasks.find(t => t.id === taskId);
-    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
-    task.status = status;
-    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
-    if (!task) {
-        return res.status(404).json({ message: "Task not found!" });
-    }
+    if (!task) return res.status(404).json({ message: "Task not found!" });
 
     task.status = status;
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
+    
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Task moved successfully!", task: task });
 });
@@ -370,45 +369,25 @@ app.put('/api/tasks/:taskId/assign', (req, res) => {
     const taskId = Number(req.params.taskId);
     const { assigneeId } = req.body;
 
-    const task = db.tasks.find(
-        t => t.id === taskId
-    );
-    const { status } = req.body;
-    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
-    task.status = status;
-    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
-
+    const task = db.tasks.find(t => t.id === taskId);
     if (!task) {
-        return res.status(404).json({
-            message: "Task not found!"
-        });
+        return res.status(404).json({ message: "Task not found!" });
     }
-
     task.assigneeId = assigneeId;
 
-    fs.writeFileSync(
-        './db.json',
-        JSON.stringify(db, null, 2)
-    );
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    addHistory(task, `Assigned to ${assigneeId ? "a member" : "no one"}`, user ? user.name : "System");
+    const assignee = db.users.find(u => Number(u.id) === Number(assigneeId));
+    const assigneeData = assignee ? {
+        assigneeName: assignee.name,
+        assigneeAvatar: assignee.avatar
+    } : {
+        assigneeName: null,
+        assigneeAvatar: null
+    };
 
-    const assignee = db.users.find(
-        u => Number(u.id) === Number(assigneeId)
-    );
-
-    const assigneeData = assignee
-        ? {
-            assigneeName: assignee.name,
-            assigneeAvatar: assignee.avatar
-        }
-        : {
-            assigneeName: null,
-            assigneeAvatar: null
-        };
-
-    res.status(200).json({
-        message: "Task assigned successfully!",
-        assigneeData
-    });
+    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    res.status(200).json({ message: "Task assigned successfully!", assigneeData });
 });
 
 app.get('/api/tasks/:taskId/comments', (req, res) => {
@@ -486,11 +465,11 @@ app.put('/api/tasks/:taskId/description', (req, res) => {
 
     const task = db.tasks.find(t => t.id === taskId);
     if (!task) return res.status(404).json({ message: "Task not found!" });
-    const { status } = req.body;
-    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
-    task.status = status;
-    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
+
     task.description = description;
+    
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    addHistory(task, "Updated description", user ? user.name : "System");
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Description updated!", task });
 });
@@ -522,7 +501,11 @@ app.delete('/api/boards/:boardId', (req, res) => {
     const userId = Number(req.headers['x-user-id']);
 
     const currB = db.boards.find(b => b.id === boardId);
+    if (!currB) return res.status(404).json({ message: "Board not found!" });
+    if(userId !== currB.ownerId) return res.status(403).json({message: "Invalid access!"});
+
     db.boards = db.boards.filter(b => b.id !== boardId);
+    db.tasks = db.tasks.filter(t => t.boardId !== boardId);
 
     if(userId !== currB.ownerId)
         return res.status(403).json({message: "Invalid access!"});
@@ -565,6 +548,8 @@ app.put('/api/tasks/:taskId/deadline', (req, res) => {
     if (!task) return res.status(404).json({ message: "Task not found!" });
 
     task.deadline = deadline;
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+    addHistory(task, `Updated deadline to ${deadline}`, user ? user.name : "System");
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Deadline updated!", task });
 })

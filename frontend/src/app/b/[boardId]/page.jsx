@@ -43,6 +43,7 @@ export default function BoardDetail() {
                 
                 if (res.ok) {
                     setBoard(data.board);
+                    console.log("Tasks loaded from server:", data.tasks);
                     setTasks(data.tasks);
                 } else {
                     setErr(data.message);
@@ -253,8 +254,8 @@ export default function BoardDetail() {
                             ? {
                                 ...t,
                                 assigneeId: userId,
-                                assigneeName: data.assigneeData.assigneeName,
-                                assigneeAvatar: data.assigneeData.assigneeAvatar
+                                assigneeName: userId ? data.assigneeData.assigneeName : null,
+                                assigneeAvatar: userId ? data.assigneeData.assigneeAvatar : null
                             }
                             : t
                     )
@@ -357,16 +358,19 @@ export default function BoardDetail() {
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] -z-10" />
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-4">
                 <div className="flex items-center gap-3">
+                    <Link href={'/boards'} className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] p-1 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"> ⬅️ Back</Link>
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-white tracking-tight bg-white dark:bg-[#2d2d2d] rounded-lg py-2 px-5">
                         {board.title}
                     </h1>
-                    <button 
+                    { board.ownerId === currentUserId &&
+                        <button 
                         onClick={() => setIsSettingsOpen(true)}
                         className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] p-1 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"
                         title="Board Settings"
                     >
                         ⚙️ Settings
                     </button>
+                    }
                 </div>
                 
                 <div className="flex items-center gap-2">

@@ -52,6 +52,7 @@ export default function Settings() {
                 alert("Cập nhật thông tin thành công!");
                 setUser(prev => ({ ...prev, avatar: user.avatar }));
                 setNewPassword(""); 
+                location.reload();
             } else {
                 alert("Lỗi: " + data.message);
             }
