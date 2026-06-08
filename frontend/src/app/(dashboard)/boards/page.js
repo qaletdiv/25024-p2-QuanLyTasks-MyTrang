@@ -16,7 +16,6 @@ export default function Boards() {
     const [boards, setBoards] = useState([]);
     const [isPopUp, setIsPopUp] = useState(false);
     const [boardN, setBoardN] = useState("");
-    const [deadline, setDeadline] = useState("");
     const [currentUserId, setCurrentUserId] = useState(null);
 
     //make COLOR 🫠
@@ -70,14 +69,17 @@ export default function Boards() {
             const res = await fetch('http://localhost:5000/api/boards', {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
-                body: JSON.stringify({ title: boardNameTrimmed, deadline, bg, inviteEmail })
+                body: JSON.stringify({ title: boardNameTrimmed, bg, inviteEmail })
             });
             const data = await res.json();
-            if (res.ok) {
-                setBoards([...boards, data.newB]);
-                setIsPopUp(false);
-                setBoardN("");
+            if (!res.ok) {
+                return setErr(data.message);
             }
+            setBoards([...boards, data.newB]);
+            setIsPopUp(false);
+            setBoardN("");
+            setInviteEmail("");
+            setErr("");
         } catch (err) { setErr("Error connecting to server!"); }
     }
 
@@ -121,8 +123,6 @@ export default function Boards() {
                                 className="w-full px-4 py-3 rounded-lg bg-gray-50 dark:bg-[#1a1a1a] border dark:border-gray-600"
                                 type="text" value={boardN} onChange={e => setBoardN(e.target.value)} placeholder="Tên Board..." 
                             />
-                            <label><strong>Deadline</strong></label>
-                            <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className="p-2 border rounded" />
                             <label><strong>Invite members</strong></label>
                             <input 
                                 type="email" 
@@ -174,15 +174,6 @@ export default function Boards() {
                                     )}
                                 </div>
                                 
-                                <div className="mt-2 text-xs font-medium text-gray-500">
-                                    {board.deadline ? (
-                                        <span className={new Date(board.deadline) < new Date() ? "text-red-500" : "text-green-600"}>
-                                            📅 Deadline: {board.deadline}
-                                        </span>
-                                    ) : (
-                                        <span className="italic text-gray-400">Không có deadline</span>
-                                    )}
-                                </div>
                                 <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
                                     👑 Host: <span className="font-medium text-gray-600 dark:text-gray-300">{board.ownerName}</span>
                                 </p>

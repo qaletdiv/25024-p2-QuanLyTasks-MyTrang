@@ -48,84 +48,40 @@ export default function TaskDetail() {
 
     const toggleChecklist = async (itemId) => {
         try {
-            const res = await fetch(
-                `http://localhost:5000/api/tasks/${taskId}/checklist/${itemId}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
+            const userId = localStorage.getItem('userId');
+            const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/checklist/${itemId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'x-user-id': userId }
+            });
             if (res.ok) {
-                setTask(prev => ({
-                    ...prev,
-                    checklist: prev.checklist.map(item =>
-                        item.id === itemId
-                            ? {
-                                ...item,
-                                isDone: !item.isDone
-                            }
-                            : item
-                    ),
-                    history: data.task.history
-                }));
-            } else {
-                console.error(
-                    "Failed to toggle checklist item"
-                );
+                const data = await res.json();
+                setTask(data.task);
             }
-        } catch (error) {
-            console.error(
-                "Error updating checklist:",
-                error
-            );
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleAddChecklist = async (title) => {
         if (!title.trim()) return;
-
         try {
-            const res = await fetch(
-                `http://localhost:5000/api/tasks/${taskId}/checklist`,
-                {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        title
-                    })
-                }
-            );
-
+            const userId = localStorage.getItem('userId');
+            const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/checklist`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+                body: JSON.stringify({ title })
+            });
             if (res.ok) {
                 const data = await res.json();
-
-                setTask(prev => ({
-                    ...prev,
-                    checklist: [
-                        ...(prev.checklist || []),
-                        data.item
-                    ],
-                    history: data.task.history
-                }));
+                setTask(data.task);
             }
-        } catch (error) {
-            console.error(
-                "Error while adding checklist:",
-                error
-            );
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleUpdateDeadline = async (date) => {
         try {
+            const userId = localStorage.getItem('userId');
             const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/deadline`, {
                 method: "PUT",
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
                 body: JSON.stringify({ deadline: date })
             });
             if (res.ok) {
@@ -133,11 +89,8 @@ export default function TaskDetail() {
                 setTask(data.task)
                 setIsEditing(false); 
             }
-        } catch (err) {
-            console.error("Lỗi cập nhật:", err);
-        }
+        } catch (err) { console.error(err); }
     };
-
     return (
         <div className="max-w-5xl mx-auto p-6 grid grid-cols-3 gap-8">
 

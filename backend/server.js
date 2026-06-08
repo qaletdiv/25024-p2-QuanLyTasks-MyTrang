@@ -117,12 +117,22 @@ app.get('/api/users', (req, res)=>{
 
 app.post('/api/boards', (req, res) => {
     const userID = Number(req.headers['x-user-id']);
-    const { title, deadline, bg, inviteEmail } = req.body;
+    const { title, bg, inviteEmail } = req.body;
 
+    let userToInvite = null;
+    if (inviteEmail) {
+        userToInvite = db.users.find(u => u.email === inviteEmail.trim());
+        if (!userToInvite) {
+            return res.status(404).json({ message: "Email invite không tồn tại trong hệ thống!" });
+        }
+        if (userToInvite.id === userID) {
+            return res.status(400).json({ message: "Tự mời chính mình làm gì ba?" });
+        }
+    }
     const newB = {
         "id": db.boards.length + 101,
         "title": title,
-        "deadline": deadline,
+        "deadline": null,
         "bg": bg,
         "ownerId": userID,
         "members": [],
@@ -132,12 +142,23 @@ app.post('/api/boards', (req, res) => {
             { id: "done", title: "Done" }
         ]
     };
-    if (inviteEmail) {
-        const userToInvite = db.users.find(u => u.email === inviteEmail);
-        if (userToInvite) newB.members.push(userToInvite.id);
-    }
-
     db.boards.push(newB);
+
+    if (userToInvite) {
+        if (!db.notifications) db.notifications = [];
+        const inviterInfo = db.users.find(u => u.id === userID);
+        const inviterName = inviterInfo ? inviterInfo.name : "Ai đó";
+
+        db.notifications.push({
+            id: Date.now(),
+            userId: userToInvite.id,
+            boardId: newB.id,
+            message: `${inviterName} invites you to join board "${newB.title}"`,
+            isRead: false,
+            type: "invite", 
+            createdAt: new Date().toLocaleString()
+        });
+    }
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: "Create successfully!", newB: newB });
 });
@@ -231,17 +252,6 @@ app.post('/api/boards/:id/tasks', (req, res) => {
     res.status(200).json({ message: "Task created successfully!", task: newTask });
 });
 
-app.put('/api/tasks/:taskId/deadline', (req, res) => {
-    const task = db.tasks.find(t => t.id === Number(req.params.taskId));
-    const { status } = req.body;
-    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
-    task.status = status;
-    addHistory(task, `Changed status to ${status}`, user ? user.name : "System");
-    task.deadline = req.body.deadline;
-    fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
-    res.status(200).json({ message: "Deadline updated!" });
-});
-
 app.put('/api/tasks/:taskId/status', (req, res) => {
     const taskId = Number(req.params.taskId);
     const { status } = req.body;
@@ -333,8 +343,6 @@ app.post('/api/boards/:id/members', (req, res) => {
         });
     }
 
-    board.members.push(userToAdd.id);
-
     if (!db.notifications) {
         db.notifications = [];
     }
@@ -361,6 +369,22 @@ app.post('/api/boards/:id/members', (req, res) => {
     db.notifications.push(newNotif);
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
     res.status(200).json({ message: `${userToAdd.name} was invited successfully!` });
+});
+
+app.post('/api/boards/:id/accept-invite', (req, res) => {
+    const boardId = Number(req.params.id);
+    const userId = Number(req.headers['x-user-id']);
+
+    const board = db.boards.find(b => b.id === boardId);
+    if (!board) return res.status(404).json({ message: "Board not existed!" });
+
+    if (!board.members.includes(userId) && board.ownerId !== userId) {
+        board.members.push(userId);
+        fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+        return res.status(200).json({ message: "Welcome to the board!" });
+    }
+    
+    res.status(400).json({ message: "You are already in!" });
 });
 
 app.get('/api/notifications', (req, res) => {
@@ -513,22 +537,27 @@ app.post('/api/tasks/:taskId/checklist', (req, res) => {
     const taskId = Number(req.params.taskId);
     const { title } = req.body;
     const task = db.tasks.find(t => t.id === taskId);
-    
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+
     const newItem = { id: Date.now(), title, isDone: false };
     task.checklist = [...(task.checklist || []), newItem];
+    addHistory(task, `Added checklist: ${title}`, user ? user.name : "System");
     
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
-    res.status(200).json({ item: newItem });
+    res.status(200).json({ task });
 });
 
 app.put('/api/tasks/:taskId/checklist/:itemId', (req, res) => {
     const { taskId, itemId } = req.params;
     const task = db.tasks.find(t => t.id === Number(taskId));
     const item = task.checklist.find(i => i.id === Number(itemId));
-    
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+
     item.isDone = !item.isDone;
+    addHistory(task, `${item.isDone ? 'Checked' : 'Unchecked'}: ${item.title}`, user ? user.name : "System");
+    
     fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
-    res.status(200).json({ item });
+    res.status(200).json({ task });
 });
 
 app.delete('/api/boards/:boardId', (req, res) => {
