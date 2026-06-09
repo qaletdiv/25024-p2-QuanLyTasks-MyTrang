@@ -57,6 +57,20 @@
           "name": "Member User",
           "avatar": "https://i.pinimg.com/736x/14/7c/37/147c37f6b51d245c9d069c20d6dde0b7.jpg"
         }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "title": "To Do"
+        },
+        {
+          "id": "in-progress",
+          "title": "In Progress"
+        },
+        {
+          "id": "done",
+          "title": "Done"
+        }
       ]
     },
     {
@@ -85,6 +99,20 @@
           "id": 2,
           "name": "Member User",
           "avatar": "https://i.pinimg.com/736x/14/7c/37/147c37f6b51d245c9d069c20d6dde0b7.jpg"
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "title": "To Do"
+        },
+        {
+          "id": "in-progress",
+          "title": "In Progress"
+        },
+        {
+          "id": "done",
+          "title": "Done"
         }
       ]
     },
@@ -172,10 +200,16 @@
       "id": 1005,
       "boardId": 102,
       "title": "Meow mewo",
-      "deadline": null,
+      "deadline": "2026-06-30",
       "status": "todo",
       "assigneeId": 1,
       "history": [
+        {
+          "id": 1781005666284,
+          "action": "Updated deadline to 2026-06-30",
+          "userName": "clara",
+          "createdAt": "6/9/2026, 6:47:46 PM"
+        },
         {
           "id": 1780407348384,
           "action": "Changed status to undefined",
@@ -215,7 +249,103 @@
           "createdAt": "6/2/2026, 11:05:25 PM"
         }
       ]
+    },
+    {
+      "id": 1008,
+      "boardId": 101,
+      "title": "lô",
+      "deadline": "2026-07-01",
+      "status": "in-progress",
+      "assigneeId": 4,
+      "history": [
+        {
+          "id": 1781005929730,
+          "action": "Checked: huli",
+          "userName": "clara",
+          "createdAt": "6/9/2026, 6:52:09 PM"
+        },
+        {
+          "id": 1781005927700,
+          "action": "Added checklist: huli",
+          "userName": "clara",
+          "createdAt": "6/9/2026, 6:52:07 PM"
+        },
+        {
+          "id": 1781005919400,
+          "action": "Assigned to a member",
+          "userName": "clara",
+          "createdAt": "6/9/2026, 6:51:59 PM"
+        },
+        {
+          "id": 1781005905794,
+          "action": "Updated deadline to 2026-07-01",
+          "userName": "clara",
+          "createdAt": "6/9/2026, 6:51:45 PM"
+        },
+        {
+          "id": 1781005898039,
+          "action": "Task created",
+          "userName": "System",
+          "createdAt": "6/9/2026, 6:51:38 PM"
+        }
+      ],
+      "checklist": [
+        {
+          "id": 1781005927700,
+          "title": "huli",
+          "isDone": true
+        }
+      ]
     }
   ],
-  "notifications": []
+  "notifications": [
+    {
+      "id": 1781005899055,
+      "userId": 1,
+      "boardId": 101,
+      "message": "📝 clara vừa thêm task mới: \"lô\" vào board Dự án Tốt nghiệp",
+      "isRead": false,
+      "createdAt": "6/9/2026, 6:51:38 PM"
+    },
+    {
+      "id": 1781005900127,
+      "userId": 1,
+      "boardId": 101,
+      "message": "📝 clara vừa thêm task mới: \"lô\" vào board Dự án Tốt nghiệp",
+      "isRead": false,
+      "createdAt": "6/9/2026, 6:51:38 PM"
+    },
+    {
+      "id": 1781005903501,
+      "userId": 2,
+      "boardId": 101,
+      "message": "📝 clara vừa thêm task mới: \"lô\" vào board Dự án Tốt nghiệp",
+      "isRead": false,
+      "createdAt": "6/9/2026, 6:51:38 PM"
+    },
+    {
+      "id": 1781005919924,
+      "userId": 1,
+      "boardId": 101,
+      "message": "👤 clara đã gán task \"lô\" cho Trang",
+      "isRead": false,
+      "createdAt": "6/9/2026, 6:51:59 PM"
+    },
+    {
+      "id": 1781005926621,
+      "userId": 1,
+      "boardId": 101,
+      "message": "👤 clara đã gán task \"lô\" cho Trang",
+      "isRead": false,
+      "createdAt": "6/9/2026, 6:51:59 PM"
+    },
+    {
+      "id": 1781005922534,
+      "userId": 2,
+      "boardId": 101,
+      "message": "👤 clara đã gán task \"lô\" cho Trang",
+      "isRead": false,
+      "createdAt": "6/9/2026, 6:51:59 PM"
+    }
+  ]
 }

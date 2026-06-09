@@ -12,6 +12,8 @@ export default function TaskDetail() {
     const [users, setUsers] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
 
+    const [isAssigning, setIsAssigning] = useState(false); 
+
     useEffect(() => {
         const fetchTask = async () => {
             const res = await fetch(`http://localhost:5000/api/tasks/${taskId}`); 
@@ -31,7 +33,7 @@ export default function TaskDetail() {
         fetchUsers();
     }, []);
 
-    const assignee = users.find(u => u.id === task?.assigneeId);
+    const assignee = users.find(u => Number(u.id) === Number(task?.assigneeId));
 
     const handleSaveDescription = async () => {
         try {
@@ -91,15 +93,35 @@ export default function TaskDetail() {
             }
         } catch (err) { console.error(err); }
     };
+
+    const handleAssignTask = async (userId) => {
+        try {
+            const currentUserId = localStorage.getItem('userId');
+            const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/assign`, {
+                method: "PUT",
+                headers: { 'Content-Type': 'application/json', 'x-user-id': currentUserId },
+                body: JSON.stringify({ assigneeId: userId })
+            });
+            
+            if (res.ok) {
+                const taskRes = await fetch(`http://localhost:5000/api/tasks/${taskId}`); 
+                const data = await taskRes.json();
+                setTask(data.task);
+                setIsAssigning(false);
+            }
+        } catch (error) { 
+            console.error("Assignment error"); 
+        }
+    };
+
     return (
         <div className="max-w-5xl mx-auto p-6 grid grid-cols-3 gap-8">
 
             <div className="col-span-2 space-y-6">
 
-                <h1 className="text-2xl font-bold">
+                <h1 className="text-2xl font-bold dark:text-white">
                     {task?.title}
                 </h1>
-
                 <div className="mt-4">
                     <label className="text-sm font-semibold text-gray-500 block mb-1">Deadline:</label>
                     
@@ -107,24 +129,21 @@ export default function TaskDetail() {
                         <input 
                             type="date" 
                             defaultValue={task?.deadline}
-                            className="p-2 border rounded dark:bg-[#2d2d2d] dark:text-white"
+                            className="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none dark:bg-[#2d2d2d] dark:text-white dark:border-gray-600 shadow-sm"
                             onBlur={(e) => handleUpdateDeadline(e.target.value)} 
                             autoFocus
                         />
                     ) : (
                         <div 
-                            className="group flex items-center gap-2 p-2 border border-transparent hover:border-gray-300 rounded cursor-pointer transition-all w-fit"
+                            onClick={() => setIsEditing(true)}
+                            className="group flex items-center gap-2 p-2 bg-gray-50 hover:bg-blue-50 dark:bg-[#2d2d2d] dark:hover:bg-[#1a1a1a] border border-transparent hover:border-blue-200 rounded-lg cursor-pointer transition-all w-fit"
                         >
-                            <span className={task?.deadline ? "text-gray-800 dark:text-white" : "text-gray-400 italic"}>
-                                {task?.deadline || "Haven't set up deadline yet!"}
+                            <span className={task?.deadline ? "text-blue-600 dark:text-blue-400 font-bold" : "text-gray-400 italic font-medium"}>
+                                {task?.deadline ? `⏰ ${task.deadline}` : "Chưa set deadline, click vào đây nha!"}
                             </span>
-                            
+                            <span className="opacity-0 group-hover:opacity-100 text-xs">✏️</span>
                         </div>
-                        
                     )}
-                    <button onClick={() => setIsEditing(true)} className="cursor-pointer p-2 border border-gray-300 rounded-lg text-xs underline transition-opacity">
-                        ✒️
-                    </button>
                 </div>
 
                 <section className="mb-6">
@@ -139,16 +158,16 @@ export default function TaskDetail() {
                 </section>
 
                <section className="mt-6">
-                    <h3 className="font-semibold mb-2">Checklist</h3>
+                    <h3 className="font-semibold mb-2 dark:text-white">Checklist</h3>
                     {task?.checklist?.map((item) => (
-                        <div key={item.id} className="flex items-center gap-2 mb-2 p-2 hover:bg-gray-50 rounded">
+                        <div key={item.id} className="flex items-center gap-2 mb-2 p-2 hover:bg-gray-50 dark:hover:bg-[#2d2d2d] rounded">
                             <input 
                                 type="checkbox" 
                                 checked={item.isDone}
                                 onChange={() => toggleChecklist(item.id)}
                                 className="w-4 h-4"
                             />
-                            <span className={item.isDone ? "line-through text-gray-400" : ""}>{item.title}</span>
+                            <span className={item.isDone ? "line-through text-gray-400" : "dark:text-gray-200"}>{item.title}</span>
                         </div>
                     ))}
                     <button 
@@ -156,13 +175,13 @@ export default function TaskDetail() {
                             const title = prompt("Checklist name:");
                             if (title) handleAddChecklist(title);
                         }}
-                        className="text-blue-600 text-sm font-medium hover:underline"
+                        className="text-blue-600 text-sm font-medium hover:underline mt-2"
                     >
                         + Add checklist
                     </button>
                 </section>
 
-                <section className="border-t pt-6">
+                <section className="border-t dark:border-gray-800 pt-6">
                     <TaskComment 
                         activeTask={task} 
                         tasks={[task]}
@@ -173,36 +192,69 @@ export default function TaskDetail() {
             </div>
 
             <div className="col-span-1 space-y-4">
-
-                <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500">
-                        Assignee
-                    </p>
+                <div className="p-4 bg-gray-50 dark:bg-[#2d2d2d] rounded-lg relative border dark:border-gray-700">
+                    <div className="flex justify-between items-center mb-3">
+                        <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                            Assignee
+                        </p>
+                        <button 
+                            onClick={() => setIsAssigning(!isAssigning)} 
+                            className="text-[11px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded hover:bg-blue-200 transition-colors font-bold uppercase"
+                        >
+                            Change
+                        </button>
+                    </div>
 
                     {assignee ? (
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-3">
                             <img 
                                 src={assignee.avatar} 
                                 alt={assignee.name} 
-                                className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                                className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-600 shadow-sm object-cover"
                             />
-                            <span className="text-sm font-medium text-gray-700">{assignee.name}</span>
+                            <span className="text-sm font-bold text-gray-800 dark:text-white">{assignee.name}</span>
                         </div>
                     ) : (
-                        <p className="text-sm text-gray-400 mt-2 italic">Not assigned yet!</p>
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <div className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
+                                👤
+                            </div>
+                            <span className="text-sm italic">Not assigned yet!</span>
+                        </div>
+                    )}
+
+                    {isAssigning && (
+                        <div className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-gray-700 shadow-xl rounded-lg z-10 max-h-56 overflow-y-auto">
+                            <div 
+                                className="p-3 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer text-sm text-red-500 font-medium transition-colors border-b dark:border-gray-800"
+                                onClick={() => handleAssignTask(null)}
+                            >
+                                ❌ Unassigned
+                            </div>
+                            {users.map(u => (
+                                <div 
+                                    key={u.id} 
+                                    className="p-3 hover:bg-blue-50 dark:hover:bg-[#2d2d2d] cursor-pointer flex items-center gap-3 text-sm transition-colors"
+                                    onClick={() => handleAssignTask(u.id)}
+                                >
+                                    <img src={u.avatar} className="w-7 h-7 rounded-full object-cover" alt="" />
+                                    <span className="dark:text-white font-medium">{u.name}</span>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
 
-                <div className="p-4 bg-white dark:bg-[#1a1a1a] rounded-lg border dark:border-gray-700">
+                <div className="p-4 bg-white dark:bg-[#1a1a1a] rounded-lg border dark:border-gray-700 shadow-sm">
                     <h3 className="font-bold text-sm mb-3 dark:text-white">Activity Log</h3>
-                    <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                    <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                         {task?.history?.length > 0 ? (
                             task.history.map(log => (
-                                <div key={log.id} className="text-xs border-l-2 border-blue-500 pl-2">
+                                <div key={log.id} className="text-xs border-l-2 border-blue-500 pl-3 py-1">
                                     <p className="dark:text-gray-300">
-                                        <span className="font-semibold text-blue-500">{log.userName}</span> {log.action}
+                                        <span className="font-semibold text-blue-600 dark:text-blue-400">{log.userName}</span> {log.action}
                                     </p>
-                                    <p className="text-[10px] text-gray-400">{log.createdAt}</p>
+                                    <p className="text-[10px] text-gray-400 mt-0.5">{log.createdAt}</p>
                                 </div>
                             ))
                         ) : (

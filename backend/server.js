@@ -363,6 +363,7 @@ app.post('/api/boards/:id/members', (req, res) => {
         boardId: board.id,
         message: `${inviterName} invited you to join the project "${board.title}"`,
         isRead: false,
+        type: "invite",
         createdAt: new Date().toLocaleString()
     };
 
@@ -506,7 +507,7 @@ app.post('/api/tasks/:taskId/comments', (req, res) => {
     };
 
     task.comments.push(newComment);
-
+    createNotification(task.boardId, userId, `💬 ${user.name} đã bình luận trong task "${task.title}": "${content.substring(0, 20)}..."`);
     fs.writeFileSync(
         './db.json',
         JSON.stringify(db, null, 2)
