@@ -40,6 +40,7 @@ export default function Boards() {
                 const data = await res.json();
                 
                 if (!res.ok) {
+                    alert(data.message);
                     setErr(data.message);
                 } else {
                     setBoards(data.userBoards); 
@@ -73,6 +74,7 @@ export default function Boards() {
             });
             const data = await res.json();
             if (!res.ok) {
+                alert(data.message);
                 return setErr(data.message);
             }
             setBoards([...boards, data.newB]);
@@ -100,7 +102,6 @@ export default function Boards() {
 
     return (
         <div className="p-6">
-            {err && <p className="text-red-500 font-bold mb-4">{err} <Link href={'/boards'}>Go back</Link></p>}
             {boards.length === 0 && <p className="text-gray-500 italic">You have no boards yet!</p>}
 
             {isPopUp && (

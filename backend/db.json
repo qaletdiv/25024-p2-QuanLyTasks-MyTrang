@@ -140,7 +140,28 @@
       "deadline": "2026-06-01",
       "bg": "https://i.pinimg.com/736x/26/69/be/2669beca7c00ee17a01b960eb85e9e2e.jpg",
       "ownerId": 3,
-      "members": []
+      "members": [],
+      "columns": [
+        {
+          "id": "todo",
+          "title": "To Do"
+        },
+        {
+          "id": "in-progress",
+          "title": "In Progress"
+        },
+        {
+          "id": "done",
+          "title": "Done"
+        }
+      ],
+      "membersData": [
+        {
+          "id": 3,
+          "name": "clara",
+          "avatar": "https://i.pinimg.com/736x/d3/f8/7f/d3f87f52b78e0cf990587a4b7316191c.jpg"
+        }
+      ]
     },
     {
       "id": 106,
@@ -294,6 +315,68 @@
           "id": 1781005927700,
           "title": "huli",
           "isDone": true
+        }
+      ]
+    },
+    {
+      "id": 1009,
+      "boardId": 105,
+      "title": "hkj",
+      "deadline": null,
+      "status": "todo",
+      "assigneeId": 3,
+      "history": [
+        {
+          "id": 1781057715268,
+          "action": "Assigned to a member",
+          "userName": "System",
+          "createdAt": "6/10/2026, 9:15:15 AM"
+        },
+        {
+          "id": 1781057713113,
+          "action": "Assigned to a member",
+          "userName": "System",
+          "createdAt": "6/10/2026, 9:15:13 AM"
+        },
+        {
+          "id": 1781057711146,
+          "action": "Assigned to a member",
+          "userName": "System",
+          "createdAt": "6/10/2026, 9:15:11 AM"
+        },
+        {
+          "id": 1781057709141,
+          "action": "Assigned to a member",
+          "userName": "System",
+          "createdAt": "6/10/2026, 9:15:09 AM"
+        },
+        {
+          "id": 1781057705423,
+          "action": "Task created",
+          "userName": "System",
+          "createdAt": "6/10/2026, 9:15:05 AM"
+        }
+      ]
+    },
+    {
+      "id": 1010,
+      "boardId": 105,
+      "title": "hkh",
+      "deadline": null,
+      "status": "in-progress",
+      "assigneeId": 3,
+      "history": [
+        {
+          "id": 1781058092866,
+          "action": "Assigned to a member",
+          "userName": "clara",
+          "createdAt": "6/10/2026, 9:21:32 AM"
+        },
+        {
+          "id": 1781058088130,
+          "action": "Task created",
+          "userName": "System",
+          "createdAt": "6/10/2026, 9:21:28 AM"
         }
       ]
     }

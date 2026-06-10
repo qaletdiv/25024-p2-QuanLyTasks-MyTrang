@@ -188,12 +188,14 @@ export default function BoardDetail() {
                     : t
             )
         );
+        const currentUserId = localStorage.getItem('userId');
 
         try {
             await fetch(`http://localhost:5000/api/tasks/${taskId}/status`, {
                 method: "PUT",
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'x-user-id': currentUserId
                 },
                 body: JSON.stringify({ status: newStatus })
             });
@@ -238,12 +240,14 @@ export default function BoardDetail() {
 
     const handleAssignTask = async (taskId, userId) => {
         try {
+            const currentUserId = localStorage.getItem('userId');
             const res = await fetch(
                 `http://localhost:5000/api/tasks/${taskId}/assign`,
                 {
                     method: "PUT",
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'x-user-id': currentUserId
                     },
                     body: JSON.stringify({
                         assigneeId: userId
