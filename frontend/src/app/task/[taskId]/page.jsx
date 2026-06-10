@@ -2,6 +2,7 @@
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import TaskComment from "@/components/features/comment/TaskComment";
+import Link from "next/link";
 
 export default function TaskDetail() {
     const { taskId } = useParams();
@@ -11,6 +12,7 @@ export default function TaskDetail() {
     const [checklist, setChecklist] = useState([]);
     const [users, setUsers] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
+    const [boardId, setBoardId] = useState(null);
 
     const [isAssigning, setIsAssigning] = useState(false); 
 
@@ -20,6 +22,7 @@ export default function TaskDetail() {
             const data = await res.json();
             setTask(data.task);
             setDescription(data.task.description || "");
+            setBoardId(data.task.boardId);
         };
         if (taskId) fetchTask();
     }, [taskId]);
@@ -118,7 +121,7 @@ export default function TaskDetail() {
         <div className="max-w-5xl mx-auto p-6 grid grid-cols-3 gap-8">
 
             <div className="col-span-2 space-y-6">
-
+                <Link href={`/b/${boardId}`} className="flex items-center gap-2 bg-white dark:bg-[#2d2d2d] p-1 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"> ⬅️ Back</Link>
                 <h1 className="text-2xl font-bold dark:text-white">
                     {task?.title}
                 </h1>
@@ -139,7 +142,7 @@ export default function TaskDetail() {
                             className="group flex items-center gap-2 p-2 bg-gray-50 hover:bg-blue-50 dark:bg-[#2d2d2d] dark:hover:bg-[#1a1a1a] border border-transparent hover:border-blue-200 rounded-lg cursor-pointer transition-all w-fit"
                         >
                             <span className={task?.deadline ? "text-blue-600 dark:text-blue-400 font-bold" : "text-gray-400 italic font-medium"}>
-                                {task?.deadline ? `⏰ ${task.deadline}` : "Chưa set deadline, click vào đây nha!"}
+                                {task?.deadline ? `⏰ ${task.deadline}` : "Set deadline!"}
                             </span>
                             <span className="opacity-0 group-hover:opacity-100 text-xs">✏️</span>
                         </div>

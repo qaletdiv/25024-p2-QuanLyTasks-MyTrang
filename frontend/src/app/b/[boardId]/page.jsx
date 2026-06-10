@@ -551,7 +551,7 @@ export default function BoardDetail() {
                                                     />
                                                 ) : (
                                                     <>
-                                                        <Link href={`/task/${t.id}`} className="flex-1 overflow-hidden break-words text-sm font-medium text-gray-700 dark:text-gray-200">
+                                                        <Link href={`/task/${t.id}`} className="flex-1 overflow-hidden break-words text-sm font-medium text-blue-700 hover:underline dark:text-gray-200">
                                                             {t.title}
                                                         </Link>
                                                         <div className="task-card">
