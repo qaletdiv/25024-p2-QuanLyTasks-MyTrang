@@ -117,6 +117,36 @@ export default function TaskDetail() {
         }
     };
 
+    const handleAddLabel = async (label) => {
+        if (!label.trim()) return;
+        try {
+            const userId = localStorage.getItem('userId');
+            const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/labels`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json', 'x-user-id': userId },
+                body: JSON.stringify({ label })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setTask(data.task);
+            }
+        } catch (error) { console.error(error); }
+    };
+
+    const handleRemoveLabel = async (label) => {
+        try {
+            const userId = localStorage.getItem('userId');
+            const res = await fetch(`http://localhost:5000/api/tasks/${taskId}/labels/${encodeURIComponent(label)}`, {
+                method: "DELETE",
+                headers: { 'x-user-id': userId }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setTask(data.task);
+            }
+        } catch (error) { console.error(error); }
+    };
+
     return (
         <div className="max-w-5xl mx-auto p-6 grid grid-cols-3 gap-8">
 
@@ -147,6 +177,35 @@ export default function TaskDetail() {
                             <span className="opacity-0 group-hover:opacity-100 text-xs">✏️</span>
                         </div>
                     )}
+                </div>
+                <div className="mt-4 pb-4 border-b border-gray-100 dark:border-gray-800">
+                    <label className="text-sm font-semibold text-gray-500 block mb-2">🏷️ Labels:</label>
+                    <div className="flex flex-wrap gap-2 items-center">
+                        {task?.labels?.map((lbl, idx) => (
+                            <span 
+                                key={idx} 
+                                className="group flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-full text-xs font-bold shadow-sm transition-all hover:bg-blue-200"
+                            >
+                                {lbl}
+                                <button 
+                                    onClick={() => handleRemoveLabel(lbl)} 
+                                    className="hidden group-hover:inline-block text-red-500 hover:text-red-700 ml-1 font-bold"
+                                    title="Xóa nhãn này"
+                                >
+                                    ✖
+                                </button>
+                            </span>
+                        ))}
+                        <button 
+                            onClick={() => {
+                                const lbl = prompt("Input name of label");
+                                if (lbl) handleAddLabel(lbl);
+                            }} 
+                            className="text-xs border-2 border-dashed border-gray-300 text-gray-500 px-3 py-1 rounded-full hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-[#1a1a1a] transition-colors font-medium"
+                        >
+                            + Add label
+                        </button>
+                    </div>
                 </div>
 
                 <section className="mb-6">

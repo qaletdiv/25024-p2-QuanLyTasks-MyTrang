@@ -132,6 +132,32 @@
       "ownerId": 3,
       "members": [
         1
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "title": "To Do"
+        },
+        {
+          "id": "in-progress",
+          "title": "In Progress"
+        },
+        {
+          "id": "done",
+          "title": "Done"
+        }
+      ],
+      "membersData": [
+        {
+          "id": 3,
+          "name": "clara",
+          "avatar": "https://i.pinimg.com/736x/d3/f8/7f/d3f87f52b78e0cf990587a4b7316191c.jpg"
+        },
+        {
+          "id": 1,
+          "name": "Admin User",
+          "avatar": "https://i.pinimg.com/originals/b7/3f/d9/b73fd93e9a6ef75821112cef9443f799.jpg"
+        }
       ]
     },
     {
@@ -379,6 +405,31 @@
           "createdAt": "6/10/2026, 9:21:28 AM"
         }
       ]
+    },
+    {
+      "id": 1011,
+      "boardId": 104,
+      "title": "haha",
+      "deadline": null,
+      "status": "todo",
+      "assigneeId": null,
+      "history": [
+        {
+          "id": 1781264002892,
+          "action": "Added label: [asdsfa]",
+          "userName": "clara",
+          "createdAt": "6/12/2026, 6:33:22 PM"
+        },
+        {
+          "id": 1781263989304,
+          "action": "Task created",
+          "userName": "System",
+          "createdAt": "6/12/2026, 6:33:09 PM"
+        }
+      ],
+      "labels": [
+        "asdsfa"
+      ]
     }
   ],
   "notifications": [
@@ -429,6 +480,14 @@
       "message": "👤 clara đã gán task \"lô\" cho Trang",
       "isRead": false,
       "createdAt": "6/9/2026, 6:51:59 PM"
+    },
+    {
+      "id": 1781263989479,
+      "userId": 1,
+      "boardId": 104,
+      "message": "📝 clara vừa thêm task mới: \"haha\" vào board Meow",
+      "isRead": false,
+      "createdAt": "6/12/2026, 6:33:09 PM"
     }
   ]
 }

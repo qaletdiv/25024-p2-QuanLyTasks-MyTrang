@@ -685,4 +685,43 @@ const createNotification = (boardId, senderId, message) => {
     });
 };
 
+app.post('/api/tasks/:taskId/labels', (req, res) => {
+    const taskId = Number(req.params.taskId);
+    const { label } = req.body;
+    const task = db.tasks.find(t => t.id === taskId);
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+
+    if (!task) return res.status(404).json({ message: "Task not found!" });
+
+    if (!task.labels) task.labels = []; 
+    
+    const cleanLabel = label.trim();
+    if (cleanLabel && !task.labels.includes(cleanLabel)) {
+        task.labels.push(cleanLabel);
+        addHistory(task, `Added label: [${cleanLabel}]`, user ? user.name : "System");
+        fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    }
+    
+    res.status(200).json({ task });
+});
+
+app.delete('/api/tasks/:taskId/labels/:labelName', (req, res) => {
+    const taskId = Number(req.params.taskId);
+    const labelName = req.params.labelName;
+    const task = db.tasks.find(t => t.id === taskId);
+    const user = db.users.find(u => u.id === Number(req.headers['x-user-id']));
+
+    if (!task) return res.status(404).json({ message: "Task not found!" });
+
+    if (task.labels) {
+        task.labels = task.labels.filter(l => l !== labelName);
+        addHistory(task, `Removed label: [${labelName}]`, user ? user.name : "System");
+        fs.writeFileSync('./db.json', JSON.stringify(db, null, 2));
+    }
+    
+    res.status(200).json({ task });
+});
+
+
+
 app.listen(5000, ()=> console.log('Server is running!'));
